@@ -1,0 +1,42 @@
+void main()
+{
+    unsigned int m = 3; // numero di righe della prima matrice
+    unsigned int n = 2; // numero di colonne della prima matrice
+    unsigned int k = 4; // numero di colonne della seconda matrice
+    short int mat1[] = { -1,-2, 4,5, 4,-2 }; // prima matrice
+    short int mat2[] = { 2,0,0,0, 0,2,0,0 }; // seconda matrice
+    int mat3[1024]; // matrice risultato
+
+    __asm {
+
+        lea eax, mat1       //load mat1
+        lea edi, mat3       //load mat result
+        push m
+
+        Loop3 :             //extern loop
+        lea ebx, mat2       //load here mat2 to start from the beginning when new result raw starts
+            xor edx, edx    //sets to zero column counter set to zero when new result row starts
+
+        Loop2 :             //middle loop, as long as k, mat2 columns 
+        xor ecx, ecx        //sets to zero mat1 column counter every n multiplications
+
+        Loop1 :             //inner loop
+        call Compute        //calls sub program that calulates raw/column products
+            inc ecx         //increase column counter
+            cmp ecx, n      //check column counter
+            jb Loop1        //if below loop1 again
+            add ebx, 2      //if equal to n, inner loop is over, move mat2 position of one position
+            inc edx         //increase mat2 column counter
+            cmp edx, k      //chek mat2 column counter
+            jb Loop2        //if below loop2 again
+            imul esi, n, 2      //else calculate offset to skip to new raw in mat1
+            add eax, esi        //...skip to new mat1 raw
+            imul esi, k, 4      //calculate offset to skip to new raw in result matrix(mat3)
+            add edi, esi        //...skip to new raw in mat3
+            dec m               //a raw in mat1 has been done, decrease its counter
+            cmp m, 0            //check how many raws has been done
+            ja Loop3            //if more than zero, do extern loop again
+            jmp Finale          //else algorithm is over
+
+        Compute :               //calulates raw/column products
+        mov
